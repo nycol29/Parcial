@@ -1,0 +1,21 @@
+@model PortalAcademico.Models.Curso
+
+@{
+    ViewData["Title"] = "Detalle del Curso";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title text-primary">@Model.Nombre (@Model.Codigo)</h3>
+            <p><strong>Créditos:</strong> @Model.Creditos</p>
+            <p><strong>Cupo Máximo:</strong> @Model.CupoMaximo</p>
+            <p><strong>Horario:</strong> @Model.HorarioInicio.ToString(@"hh\:mm") - @Model.HorarioFin.ToString(@"hh\:mm")</p>
+            <p><strong>Estado:</strong> @(Model.Activo ? "Activo" : "Inactivo")</p>
+
+            <a asp-controller="Matriculas" asp-action="Create" asp-route-cursoId="@Model.Id"
+               class="btn btn-success">Inscribirse</a>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </div>
+    </div>
+</div>
