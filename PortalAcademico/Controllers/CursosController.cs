@@ -1,20 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using PortalAcademico.Data;
 using PortalAcademico.Models;
+using System.Text.Json;
 
 namespace PortalAcademico.Controllers
 {
     public class CursosController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IDistributedCache _cache;
 
-        public CursosController(ApplicationDbContext context)
+        public CursosController(ApplicationDbContext context, IDistributedCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
-        // GET: Catálogo de cursos (con filtros)
+        // GET: Catálogo de cursos (con filtros y cache 60s)
         public async Task<IActionResult> Index(
             string? nombre, 
             int? creditosMin, 
@@ -22,15 +26,31 @@ namespace PortalAcademico.Controllers
             TimeSpan? horarioInicio, 
             TimeSpan? horarioFin)
         {
-            // Traemos solo cursos activos con créditos positivos desde DB
-            var cursos = await _context.Cursos
-                .Where(c => c.Activo && c.Creditos > 0)
-                .ToListAsync();
+            string cacheKey = "CursosActivos";
+            List<Curso> cursos;
 
-            // Filtramos horarios inválidos en memoria
-            cursos = cursos
-                .Where(c => c.HorarioFin >= c.HorarioInicio)
-                .ToList();
+            // Intentamos obtener cursos desde cache
+            var cachedCursos = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedCursos))
+            {
+                cursos = JsonSerializer.Deserialize<List<Curso>>(cachedCursos)!;
+            }
+            else
+            {
+                cursos = await _context.Cursos
+                    .Where(c => c.Activo && c.Creditos > 0)
+                    .ToListAsync();
+
+                // Guardar en cache por 60 segundos
+                var serialized = JsonSerializer.Serialize(cursos);
+                await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
+                });
+            }
+
+            // Filtramos horarios inválidos
+            cursos = cursos.Where(c => c.HorarioFin >= c.HorarioInicio).ToList();
 
             // Aplicamos filtros dinámicos
             if (!string.IsNullOrWhiteSpace(nombre))
@@ -74,14 +94,26 @@ namespace PortalAcademico.Controllers
             return View(vm);
         }
 
-        // GET: Detalle de curso
+        // GET: Detalle de curso y guardar último curso visitado en Redis
         public async Task<IActionResult> Detalle(int id)
         {
             var curso = await _context.Cursos.FirstOrDefaultAsync(c => c.Id == id && c.Activo);
             if (curso == null)
                 return NotFound();
 
+            // Guardar en Redis como "UltimoCurso" por 30 minutos
+            await _cache.SetStringAsync("UltimoCurso", curso.Nombre, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+            });
+
             return View(curso);
+        }
+
+        // Método auxiliar para invalidar cache (cuando se cree/edite curso)
+        private async Task InvalidateCache()
+        {
+            await _cache.RemoveAsync("CursosActivos");
         }
     }
 }
