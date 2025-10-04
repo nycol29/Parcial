@@ -1,41 +1,82 @@
-@model IEnumerable<PortalAcademico.Models.Curso>
+@model PortalAcademico.Models.CursoFiltroViewModel
 
 @{
     ViewData["Title"] = "Catálogo de Cursos";
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4 text-primary">Catálogo de Cursos</h2>
+    <h2 class="text-primary mb-3">Catálogo de Cursos</h2>
 
-    <table class="table table-bordered table-striped shadow-sm">
+    <!-- Filtros -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <input type="text" name="nombre" class="form-control" placeholder="Nombre del curso"
+                   value="@Model.Nombre" />
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="creditosMin" class="form-control" placeholder="Créditos Min"
+                   value="@Model.CreditosMin" min="0" />
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="creditosMax" class="form-control" placeholder="Créditos Max"
+                   value="@Model.CreditosMax" min="0" />
+        </div>
+        <div class="col-md-2">
+            <input type="time" name="horarioInicio" class="form-control"
+                   value="@(Model.HorarioInicio?.ToString(@"hh\:mm"))" />
+        </div>
+        <div class="col-md-2">
+            <input type="time" name="horarioFin" class="form-control"
+                   value="@(Model.HorarioFin?.ToString(@"hh\:mm"))" />
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Validaciones -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Tabla de cursos -->
+    <table class="table table-bordered table-hover shadow-sm">
         <thead class="table-dark">
             <tr>
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Créditos</th>
-                <th>Cupo Máximo</th>
+                <th>Cupo Máx</th>
                 <th>Horario</th>
-                <th>Activo</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-        @foreach (var curso in Model)
+        @foreach (var curso in Model.Cursos!)
         {
             <tr>
                 <td>@curso.Codigo</td>
                 <td>@curso.Nombre</td>
                 <td>@curso.Creditos</td>
                 <td>@curso.CupoMaximo</td>
-                <td>@curso.HorarioInicio.ToString(@"hh\:mm") - @curso.HorarioFin.ToString(@"hh\:mm")</td>
+                <!-- Horario en AM/PM -->
                 <td>
-                    @if (curso.Activo)
-                    {
-                        <span class="badge bg-success">Activo</span>
+                    @{
+                        var inicio = DateTime.Today.Add(curso.HorarioInicio);
+                        var fin = DateTime.Today.Add(curso.HorarioFin);
                     }
-                    else
-                    {
-                        <span class="badge bg-danger">Inactivo</span>
-                    }
+                    @inicio.ToString("hh:mm tt") - @fin.ToString("hh:mm tt")
+                </td>
+                <td>
+                    <a asp-action="Detalle" asp-route-id="@curso.Id" class="btn btn-info btn-sm">Ver detalle</a>
                 </td>
             </tr>
         }

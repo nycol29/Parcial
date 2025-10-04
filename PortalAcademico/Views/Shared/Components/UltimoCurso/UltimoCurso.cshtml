@@ -1,0 +1,10 @@
+@model PortalAcademico.Models.Curso
+
+@if (Model != null)
+{
+    <div class="alert alert-info mb-2">
+        <a asp-controller="Cursos" asp-action="Detalle" asp-route-id="@Model.Id">
+            Volver al curso: <strong>@Model.Nombre</strong>
+        </a>
+    </div>
+}
