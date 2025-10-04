@@ -1,41 +1,77 @@
-@model IEnumerable<PortalAcademico.Models.Curso>
-
-@{
-    ViewData["Title"] = "Catálogo de Cursos";
-}
+@model PortalAcademico.Models.CursoFiltroViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<IdentityUser> SignInManager
 
 <div class="container mt-4">
-    <h2 class="mb-4 text-primary">Catálogo de Cursos</h2>
+    <h2 class="text-primary mb-3">Catálogo de Cursos</h2>
 
-    <table class="table table-bordered table-striped shadow-sm">
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success">@TempData["Mensaje"]</div>
+    }
+
+    @if (SignInManager.IsSignedIn(User) && User.IsInRole("Coordinador"))
+    {
+        <a asp-controller="Coordinador" asp-action="Create" class="btn btn-success mb-3">Crear Curso</a>
+    }
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <input type="text" name="nombre" class="form-control" placeholder="Nombre del curso" value="@Model.Nombre" />
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="creditosMin" class="form-control" placeholder="Créditos Min" value="@Model.CreditosMin" min="0" />
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="creditosMax" class="form-control" placeholder="Créditos Max" value="@Model.CreditosMax" min="0" />
+        </div>
+        <div class="col-md-2">
+            <input type="time" name="horarioInicio" class="form-control" value="@(Model.HorarioInicio?.ToString(@"hh\:mm"))" />
+        </div>
+        <div class="col-md-2">
+            <input type="time" name="horarioFin" class="form-control" value="@(Model.HorarioFin?.ToString(@"hh\:mm"))" />
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-hover shadow-sm">
         <thead class="table-dark">
             <tr>
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Créditos</th>
-                <th>Cupo Máximo</th>
+                <th>Cupo Máx</th>
                 <th>Horario</th>
-                <th>Activo</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-        @foreach (var curso in Model)
+        @foreach (var curso in Model.Cursos!)
         {
             <tr>
                 <td>@curso.Codigo</td>
                 <td>@curso.Nombre</td>
                 <td>@curso.Creditos</td>
                 <td>@curso.CupoMaximo</td>
-                <td>@curso.HorarioInicio.ToString(@"hh\:mm") - @curso.HorarioFin.ToString(@"hh\:mm")</td>
                 <td>
-                    @if (curso.Activo)
-                    {
-                        <span class="badge bg-success">Activo</span>
+                    @{
+                        var inicio = DateTime.Today.Add(curso.HorarioInicio);
+                        var fin = DateTime.Today.Add(curso.HorarioFin);
                     }
-                    else
+                    @inicio.ToString("hh:mm tt") - @fin.ToString("hh:mm tt")
+                </td>
+                <td>
+                    @if (SignInManager.IsSignedIn(User) && User.IsInRole("Coordinador"))
                     {
-                        <span class="badge bg-danger">Inactivo</span>
+                        <a asp-controller="Coordinador" asp-action="Edit" asp-route-id="@curso.Id" class="btn btn-primary btn-sm">Editar</a>
+                        <form asp-controller="Coordinador" asp-action="Desactivar" asp-route-id="@curso.Id" method="post" class="d-inline" onsubmit="return confirm('¿Está seguro que desea desactivar este curso?');">
+                            <button type="submit" class="btn btn-warning btn-sm">Desactivar</button>
+                        </form>
                     }
+                    <a asp-controller="Cursos" asp-action="Detalle" asp-route-id="@curso.Id" class="btn btn-info btn-sm">Ver detalle</a>
                 </td>
             </tr>
         }

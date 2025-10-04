@@ -1,8 +1,14 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace PortalAcademico.Models
 {
-    public enum EstadoMatricula { Pendiente, Confirmada, Cancelada }
+    public enum EstadoMatricula
+    {
+        Pendiente,
+        Confirmada,
+        Cancelada
+    }
 
     public class Matricula
     {
@@ -10,15 +16,17 @@ namespace PortalAcademico.Models
 
         [Required]
         public int CursoId { get; set; }
+
+        [Required]
+        public string UsuarioId { get; set; } // Solo guardamos Id del usuario
+
+        [Required]
+        public DateTime FechaRegistro { get; set; }
+
+        [Required]
+        public EstadoMatricula Estado { get; set; }
+
+        // Navegación opcional
         public Curso? Curso { get; set; }
-
-        [Required]
-        public string UsuarioId { get; set; } = string.Empty;
-
-        [Required]
-        public DateTime FechaRegistro { get; set; } = DateTime.Now;
-
-        [Required]
-        public EstadoMatricula Estado { get; set; } = EstadoMatricula.Pendiente;
     }
 }
