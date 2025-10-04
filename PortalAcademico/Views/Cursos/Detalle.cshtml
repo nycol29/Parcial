@@ -10,12 +10,29 @@
             <h3 class="card-title text-primary">@Model.Nombre (@Model.Codigo)</h3>
             <p><strong>Créditos:</strong> @Model.Creditos</p>
             <p><strong>Cupo Máximo:</strong> @Model.CupoMaximo</p>
-            <p><strong>Horario:</strong> @Model.HorarioInicio.ToString(@"hh\:mm") - @Model.HorarioFin.ToString(@"hh\:mm")</p>
+            @{
+                var inicio = DateTime.Today.Add(Model.HorarioInicio);
+                var fin = DateTime.Today.Add(Model.HorarioFin);
+            }
+            <p><strong>Horario:</strong> @inicio.ToString("hh:mm tt") - @fin.ToString("hh:mm tt")</p>
             <p><strong>Estado:</strong> @(Model.Activo ? "Activo" : "Inactivo")</p>
 
-            <a asp-controller="Matriculas" asp-action="Create" asp-route-cursoId="@Model.Id"
-               class="btn btn-success">Inscribirse</a>
-            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+            <!-- Mensajes de éxito/error -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+
+            <!-- Formulario para inscribirse -->
+            <form asp-controller="Matriculas" asp-action="Inscribirse" method="post">
+                <input type="hidden" name="cursoId" value="@Model.Id" />
+                <button type="submit" class="btn btn-success">Inscribirse</button>
+                <a asp-action="Index" class="btn btn-secondary">Volver</a>
+            </form>
         </div>
     </div>
 </div>
