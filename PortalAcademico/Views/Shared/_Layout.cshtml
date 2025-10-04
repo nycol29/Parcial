@@ -26,16 +26,22 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                        <!-- 👇 Enlace agregado -->
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Cursos" asp-action="Index">Cursos</a>
                         </li>
                     </ul>
-                    <partial name="_LoginPartial" />
+
+                    <div class="d-flex align-items-center">
+                        <!-- Enlace dinámico al último curso visitado -->
+                        @await Component.InvokeAsync("UltimoCurso")
+
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -47,6 +53,7 @@
             &copy; 2025 - PortalAcademico - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

@@ -1,16 +1,40 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using PortalAcademico.Models
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
+@inherits Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@functions {
+    public async Task<IList<string>> GetUserRolesAsync()
+    {
+        var currentUser = await UserManager.GetUserAsync(User);
+        return currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    }
+}
 
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
+    var roles = await GetUserRolesAsync();
+
     <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
+        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+            Hello @User.Identity?.Name!
+        </a>
     </li>
+
+    @* Mostrar Panel Coordinador si el usuario tiene rol Coordinador *@
+    @if (roles.Contains("Coordinador"))
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Coordinador" asp-action="Cursos">Panel Coordinador</a>
+        </li>
+    }
+
     <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>
         </form>
     </li>
 }
