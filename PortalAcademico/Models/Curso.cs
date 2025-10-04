@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PortalAcademico.Models
 {
-    public class Curso
+    public class Curso : IValidatableObject
     {
         public int Id { get; set; }
 
@@ -15,7 +15,7 @@ namespace PortalAcademico.Models
         [Range(1, int.MaxValue, ErrorMessage = "Los créditos deben ser mayores que 0.")]
         public int Creditos { get; set; }
 
-        [Range(1, int.MaxValue)]
+        [Range(1, int.MaxValue, ErrorMessage = "El cupo máximo debe ser mayor que 0.")]
         public int CupoMaximo { get; set; }
 
         [Required]
@@ -27,5 +27,16 @@ namespace PortalAcademico.Models
         public bool Activo { get; set; } = true;
 
         public ICollection<Matricula> Matriculas { get; set; } = new List<Matricula>();
+
+        // Validación personalizada server-side
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (HorarioFin <= HorarioInicio)
+            {
+                yield return new ValidationResult(
+                    "El horario de fin debe ser posterior al horario de inicio.",
+                    new[] { nameof(HorarioFin), nameof(HorarioInicio) });
+            }
+        }
     }
 }
