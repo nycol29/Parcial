@@ -1,0 +1,44 @@
+@model IEnumerable<PortalAcademico.Models.Curso>
+
+@{
+    ViewData["Title"] = "Catálogo de Cursos";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-primary">Catálogo de Cursos</h2>
+
+    <table class="table table-bordered table-striped shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Créditos</th>
+                <th>Cupo Máximo</th>
+                <th>Horario</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var curso in Model)
+        {
+            <tr>
+                <td>@curso.Codigo</td>
+                <td>@curso.Nombre</td>
+                <td>@curso.Creditos</td>
+                <td>@curso.CupoMaximo</td>
+                <td>@curso.HorarioInicio.ToString(@"hh\:mm") - @curso.HorarioFin.ToString(@"hh\:mm")</td>
+                <td>
+                    @if (curso.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
